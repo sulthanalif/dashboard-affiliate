@@ -53,6 +53,12 @@
         <div>
             <x-input label="Nama Rekening" type="text" wire:model="account_name" />
         </div>
+        <div>
+            <x-select
+                label="Status"
+                :options="$selectAktif"
+                wire:model="is_active" />
+        </div>
         <x-slot:actions>
             <x-button label="Save" icon="o-check" class="btn-primary" type="submit" spinner="save" />
         </x-slot:actions>

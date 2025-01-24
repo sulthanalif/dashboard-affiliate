@@ -1,9 +1,9 @@
 {{--  modal --}}
-<x-modal title="Hapus Data!" wire:model="myModal" class="backdrop-blur">
-    <x-form wire:submit="delete" class="relative" no-separator>
+<x-modal title="Peringatan" wire:model="myModal" class="backdrop-blur">
+    <x-form wire:submit="{{ $funcModal }}" class="relative" no-separator>
         <div class="flex justify-center items-center">
             <div class="mb-5 rounded-lg p-6 w-full">
-                <p>Apakah anda yakin ingin menghapus data ini?</p>
+                Apakah anda yakin ingin {{ $titleModal }} affiliate ini?
             </div>
         </div>
         <x-slot:actions>

@@ -84,8 +84,8 @@ class extends Component {
 
         activity('affiliate')->log('Register Affiliate');
 
-        $affiliate = Affiliate::where('email', $this->email)->first();
-        Mail::to($this->email)->send(new notificationRegAffiliate($affiliate));
+        // $affiliate = Affiliate::where('email', $this->email)->first();
+        // Mail::to($this->email)->send(new notificationRegAffiliate($affiliate));
 
         $this->reset($this->varAffiliate);
         $this->success('Sukses daftar affiliate.', position: 'toast-bottom', redirectTo: route('after-reg'));
@@ -94,7 +94,7 @@ class extends Component {
 
 <div>
     <div class="text-3xl font-bold text-black text-center mb-4">
-        Daftar Affiliate
+        Register Affiliate
     </div>
     <div class="flex flex-no-wrap gap-4 justify-center">
     <form class="w-full lg:w-1/2 py-2" wire:submit="register">
@@ -150,7 +150,7 @@ class extends Component {
                 <select required class="block w-full px-4 py-2 text-black bg-white border border-black rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" wire:model="bank_id" >
                     <option value="">-- Pilih Bank --</option>
                     @foreach ($banks as $bank)
-                        <option value="{{ $bank->id }}">{{ $bank->name }}</option>
+                        <option value="{{ $bank->id }}">{{ $bank->code }} ({{ $bank->name }})</option>
                     @endforeach
                 </select>
                 @error('bank_id')
@@ -193,9 +193,12 @@ class extends Component {
             </x-slot:label>
         </x-checkbox>
         </div>
-        <button type="submit" class="inline-flex justify-center px-4 py-2 text-base font-medium text-white bg-gray-600 border border-transparent rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" wire:loading.attr="disabled" wire:target="save">
-            Register
-        </button>
+        <div class="flex justify-start gap-2">
+            <button type="submit" class="inline-flex justify-center px-4 py-2 text-base font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" wire:loading.attr="disabled" wire:target="save">
+                Register
+            </button>
+            <a href="https://bervin.co.id/" class="inline-flex justify-center px-4 py-2 text-base font-medium text-white bg-gray-600 border border-transparent rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Kembali</a>
+        </div>
     </form>
     </div>
 

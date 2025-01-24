@@ -15,10 +15,9 @@
 <body class="min-h-screen font-sans antialiased bg-white">
     <nav class="bg-white shadow">
         <div class="container mx-auto py-2 flex justify-between items-center">
-            <a href="" class="flex items-center">
+            <a href="https://bervin.co.id/" class="flex items-center">
                 <img src="{{ asset('img/logo-bervin.png') }}"  alt="Logo Bervin" style="width: 250px; height: auto;">
             </a>
-            <a href="https://bervin.co.id/" class="inline-flex justify-center px-4 py-2 text-base font-medium text-white bg-gray-600 border border-transparent rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">Kembali</a>
         </div>
     </nav>
     {{-- MAIN --}}

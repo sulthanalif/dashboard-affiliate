@@ -8,6 +8,7 @@ use Livewire\Volt\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 new class extends Component {
@@ -17,6 +18,8 @@ new class extends Component {
 
     public bool $drawer = false;
     public bool $myModal = false;
+    public string $titleModal = '';
+    public string $funcModal = '';
 
     //table
     public array $selected = [];
@@ -38,7 +41,8 @@ new class extends Component {
     public string $bank_id = '';
     public string $password = '';
     public string $password_confirmation = '';
-    public array $varAffiliate = ['username', 'first_name', 'last_name', 'email', 'phone', 'address', 'account_number', 'account_name', 'bank_id', 'password', 'password_confirmation'];
+    public int $is_active = 0;
+    public array $varAffiliate = ['is_active', 'username', 'first_name', 'last_name', 'email', 'phone', 'address', 'account_number', 'account_name', 'bank_id', 'password', 'password_confirmation'];
 
     public function mount(): void
     {
@@ -132,7 +136,49 @@ new class extends Component {
         $this->bank_id = $affiliate->bank_id;
         $this->password = '';
         $this->password_confirmation = '';
+        $this->is_active = $affiliate->is_active;
         $this->drawer = true;
+    }
+
+    public function setModal($modal, $func): void
+    {
+        $this->myModal = true;
+        $this->titleModal = $modal;
+        $this->funcModal = $func;
+    }
+
+    public function approve(): void
+    {
+        foreach ($this->selected as $id) {
+            try {
+                DB::beginTransaction();
+                Affiliate::find($id)->update(['is_active' => 1, 'is_rejected' => 0]);
+                DB::commit();
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                Log::log("error", $th->getMessage());
+            }
+        }
+        $this->success('Affiliate approved.', position: 'toast-bottom');
+        $this->reset('selected');
+        $this->myModal = false;
+    }
+
+    public function reject(): void
+    {
+        foreach ($this->selected as $id) {
+            try {
+                DB::beginTransaction();
+                Affiliate::find($id)->update(['is_active' => 0, 'is_rejected' => 1]);
+                DB::commit();
+            } catch (\Throwable $th) {
+                DB::rollBack();
+                Log::log("error", $th->getMessage());
+            }
+        }
+        $this->success('Affiliate approved.', position: 'toast-bottom');
+        $this->reset('selected');
+        $this->myModal = false;
     }
 
     public function datas(): LengthAwarePaginator
@@ -158,8 +204,17 @@ new class extends Component {
             ['key' => 'first_name', 'label' => 'Nama'],
             ['key' => 'email', 'label' => 'E-mail'],
             ['key' => 'phone', 'label' => 'No Telepon'],
+            ['key' => 'is_active', 'label' => 'Status', 'sortable' => false],
             ['key' => 'address', 'label' => 'Alamat'],
-            ['key' => 'bank.name', 'label' => 'Bank']
+            ['key' => 'bank.code', 'label' => 'Bank']
+        ];
+    }
+
+    public function selectAktif(): array
+    {
+        return [
+            ['id' => 1, 'name' => 'Aktif'],
+            ['id' => 0, 'name' => 'Tidak Aktif']
         ];
     }
 
@@ -168,6 +223,7 @@ new class extends Component {
         return [
             'datas' => $this->datas(),
             'headers' => $this->headers(),
+            'selectAktif' => $this->selectAktif()
         ];
     }
 
@@ -204,22 +260,41 @@ new class extends Component {
             @scope('cell_first_name', $data)
                 {{ $data['first_name'] }} {{ $data['last_name'] }}
             @endscope
+            @scope('cell_is_active', $data)
+                @if ($data['is_active'])
+                    <x-badge value="Aktif" class="badge-success" />
+                @else
+                    @if($data['is_rejected'])
+                        <x-badge value="Ditolak" class="badge-purple-500/10" />
+                    @else
+                        <x-badge value="Tidak Aktif" class="badge-warning" />
+                    @endif
+                @endif
+            @endscope
             <x-slot:empty>
                 <x-icon name="o-cube" label="It is empty." />
             </x-slot:empty>
         </x-table>
-        @can('affiliate-delete')
+        <div class="mt-4 flex justify-between gap-2">
             @if ($this->selected)
-                <div class="mt-2">
-                    <x-button label="Hapus" icon="o-trash" @click="$wire.myModal = true" class="btn-ghost  text-red-500" />
+                @can('affiliate-delete')
+                    <x-button label="Hapus" icon="o-trash" @click="$wire.setModal('menghapus', 'delete')" class="text-red-500" />
+                @endcan
+                <div>
+                    @can('affiliate-reject')
+                        <x-button label="Reject" icon="o-x-mark" @click="$wire.setModal('menolak', 'reject')" class="text-red-500" />
+                    @endcan
+                    @can('affiliate-approve')
+                        <x-button label="Approve" icon="o-check" @click="$wire.setModal('menerima', 'approve')" class="text-green-500" />
+                    @endcan
                 </div>
             @endif
-        @endcan
+        </div>
     </x-card>
 
     <!-- DRAWER -->
      @include('livewire.cms.affiliates.drawer')
 
      <!-- MODAL -->
-     @include('livewire.cms.affiliates.alertDelete')
+     @include('livewire.cms.affiliates.alert')
 </div>

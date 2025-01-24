@@ -29,6 +29,8 @@ class Affiliate extends Model
         'bank_id',
         'account_name',
         'photo',
+        'is_active',
+        'is_rejected',
     ];
 
     /**

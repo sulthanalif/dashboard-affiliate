@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('bank_id')->nullable()->constrained('banks')->delete('cascade');
             $table->string('account_name')->nullable();
             $table->string('photo')->nullable();
+            $table->boolean('is_active')->default(false);
+            $table->boolean('is_rejected')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });
