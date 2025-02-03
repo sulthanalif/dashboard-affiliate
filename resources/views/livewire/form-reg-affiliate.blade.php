@@ -64,7 +64,7 @@ class extends Component {
             'account_number' => ['required', 'string', 'max:255'],
             'account_name' => ['required', 'string', 'max:255'],
             'bank_id' => ['required'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => ['nullable', 'string', 'min:8', 'confirmed'],
           ],
 
           beforeSave: function ($affiliate, $component) {
@@ -171,20 +171,7 @@ class extends Component {
                 @enderror
             </div>
         </div>
-        <div class="mb-4">
-            <label for="password" class="text-black">Password*</label>
-            <input type="password" required class="block w-full px-4 py-2 text-black bg-white border border-black rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" wire:model="password" >
-            @error('password')
-                <span class="text-red-500 text-sm">{{ $message }}</span>
-            @enderror
-        </div>
-        <div class="mb-4">
-            <label for="password_confirmation" class="text-black">Ulangi Password*</label>
-            <input type="password" required class="block w-full px-4 py-2 text-black bg-white border border-black rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500" wire:model="password_confirmation" >
-            @error('password_confirmation')
-                <span class="text-red-500 text-sm">{{ $message }}</span>
-            @enderror
-        </div>
+
         <div class="mb-4">
         <x-checkbox wire:model="tnc" class="checkbox-success">
             <x-slot:label>

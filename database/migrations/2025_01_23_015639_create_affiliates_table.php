@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('last_name');
             $table->string('email')->unique();
             $table->string('phone')->unique()->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->text('address')->nullable();
             $table->string('account_number')->nullable();
             $table->string('bank_id')->nullable()->constrained('banks')->delete('cascade');
