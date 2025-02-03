@@ -152,7 +152,17 @@ new class extends Component {
         foreach ($this->selected as $id) {
             try {
                 DB::beginTransaction();
-                Affiliate::find($id)->update(['is_active' => 1, 'is_rejected' => 0]);
+                $aff = Affiliate::find($id);
+                $aff->is_active = 1;
+                $aff->is_rejected = 0;
+
+                if (!$aff->is_wp_affiliate) {
+                    $this->activeAffiliate();
+                    $aff->is_wp_affiliate = 1;
+                }
+
+                $aff->save();
+
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollBack();

@@ -26,6 +26,7 @@ return new class extends Migration
             $table->string('photo')->nullable();
             $table->boolean('is_active')->default(false);
             $table->boolean('is_rejected')->default(false);
+            $table->boolean('is_wp_affiliate')->default(false);
             $table->softDeletes();
             $table->timestamps();
         });

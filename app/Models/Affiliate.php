@@ -31,6 +31,7 @@ class Affiliate extends Model
         'photo',
         'is_active',
         'is_rejected',
+        'is_wp_affiliate',
     ];
 
     /**
