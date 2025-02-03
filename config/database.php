@@ -62,6 +62,34 @@ return [
             ]) : [],
         ],
 
+        'wordpress' => [ // Koneksi untuk database WordPress
+            'driver' => 'mysql',
+            'host' => env('WP_DB_HOST', '127.0.0.1'),
+            'port' => env('WP_DB_PORT', '3306'),
+            'database' => env('WP_DB_DATABASE', 'wordpress_db'),
+            'username' => env('WP_DB_USERNAME', 'root'),
+            'password' => env('WP_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => 'wp_', // Sesuaikan dengan prefix tabel WordPress
+            'strict' => true,
+            'engine' => null,
+        ],
+
+        'wordpressaff' => [ // Koneksi untuk database WordPress
+            'driver' => 'mysql',
+            'host' => env('WPA_DB_HOST', '127.0.0.1'),
+            'port' => env('WPA_DB_PORT', '3306'),
+            'database' => env('WPA_DB_DATABASE', 'wordpress_db'),
+            'username' => env('WPA_DB_USERNAME', 'root'),
+            'password' => env('WPA_DB_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => 'wp_', // Sesuaikan dengan prefix tabel WordPress
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),

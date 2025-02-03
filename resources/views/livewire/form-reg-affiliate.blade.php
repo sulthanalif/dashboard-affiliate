@@ -6,6 +6,8 @@ use Mary\Traits\Toast;
 use App\Models\Affiliate;
 use Livewire\Volt\Component;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\notificationRegAffiliate;
 use Livewire\Attributes\{Layout, Title};
@@ -82,10 +84,71 @@ class extends Component {
 
         );
 
-        activity('affiliate')->log('Register Affiliate');
 
-        // $affiliate = Affiliate::where('email', $this->email)->first();
-        // Mail::to($this->email)->send(new notificationRegAffiliate($affiliate));
+        // Gunakan koneksi 'wordpress' untuk mengakses database WordPress
+        DB::connection('wordpress')->beginTransaction();
+
+        try {
+            // 1. Insert ke tabel wp_users
+            $userId = DB::connection('wordpress')->table('users')->insertGetId([
+                'user_login' => $this->username,
+                'user_pass' => $this->password,
+                'user_email' => $this->email,
+                'user_registered' => now(),
+                'user_status' => 0,
+                'display_name' => $this->username,
+            ]);
+
+            // 2. Insert ke tabel wp_usermeta untuk role dan metadata
+            if ($userId) {
+                // Set capabilities berdasarkan role affiliate
+                $capabilities = serialize(['affiliate' => true]);
+
+                DB::connection('wordpress')->table('usermeta')->insert([
+                    // Set role (wp_capabilities)
+                    [
+                        'user_id' => $userId,
+                        'meta_key' => 'wp_capabilities',
+                        'meta_value' => $capabilities,
+                    ],
+                    // Set user level (wp_user_level)
+                    [
+                        'user_id' => $userId,
+                        'meta_key' => 'wp_user_level',
+                        'meta_value' => 0, // Level 0 untuk affiliate
+                    ],
+                ]);
+
+                // 3. Tambahkan user ke tabel affiliate SliceWP (jika diperlukan)
+                // Pastikan nama tabel sesuai dengan konfigurasi SliceWP
+                $affiliateTable = 'wp_slicewp_affiliates'; // Ganti dengan nama tabel yang sesuai
+                DB::connection('wordpressaff')->beginTransaction();
+                $affiliateId = DB::connection('wordpressaff')->table($affiliateTable)->insertGetId([
+                    'user_id' => $userId,
+                    'date_created' => now(),
+                    'status' => 'active', // Status affiliate
+                    'payment_email' => $this->email, // Email pembayaran
+                ]);
+
+                if ($affiliateId) {
+                    DB::connection('wordpressaff')->commit();
+                } else {
+                    DB::connection('wordpressaff')->rollBack();
+                    Log::error("Gagal menyimpan data affiliate ke tabel wp_slicewp_affiliates.");
+                }
+                DB::connection('wordpress')->commit(); // Commit transaksi
+            } else {
+                DB::connection('wordpress')->rollBack(); // Rollback transaksi
+                Log::error("Gagal menyimpan data user ke tabel wp_users.");
+            }
+        } catch (\Exception $e) {
+            DB::connection('wordpress')->rollBack(); // Rollback transaksi jika terjadi error
+            Log::error("Terjadi error saat register affiliate: " . $e->getMessage());
+        }
+
+
+
+        activity('affiliate')->log('Register Affiliate');
 
         $this->reset($this->varAffiliate);
         $this->success('Sukses daftar affiliate.', position: 'toast-bottom', redirectTo: route('after-reg'));
