@@ -133,7 +133,7 @@ new class extends Component {
         with-pagination
         >
             @scope('cell_username', $data)
-                <x-badge value="{{ $data['username'] }}" class="badge-primary cursor-pointer" @click="$wire.show({{ $data['id'] }})" />
+                <x-badge value="{{ $data['username'] }}" class="badge-primary cursor-pointer" />
             @endscope
             @scope('cell_first_name', $data)
                 {{ $data['first_name'] }} {{ $data['last_name'] }}
