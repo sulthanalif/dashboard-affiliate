@@ -35,6 +35,11 @@
         <div>
             <x-password label="Konfirmasi Password" wire:model="password_confirmation" right  />
         </div>
+
+        @else
+        <div></div>
+            <x-input label="Password" type="text" wire:model="password" />
+        </div>
         @endif
         <div>
             <x-input label="Nomor Telepon" type="number" wire:model="phone" />

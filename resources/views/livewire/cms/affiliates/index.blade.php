@@ -134,7 +134,7 @@ new class extends Component {
         $this->account_number = $affiliate->account_number;
         $this->account_name = $affiliate->account_name;
         $this->bank_id = $affiliate->bank_id;
-        $this->password = '';
+        $this->password = $affiliate->password;
         $this->password_confirmation = '';
         $this->is_active = $affiliate->is_active;
         $this->drawer = true;
