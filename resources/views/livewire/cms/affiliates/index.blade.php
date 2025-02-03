@@ -157,7 +157,7 @@ new class extends Component {
                 $aff->is_rejected = 0;
 
                 if (!$aff->is_wp_affiliate) {
-                    $this->activeAffiliate();
+                    $this->activeAffiliate($aff->id);
                     $aff->is_wp_affiliate = 1;
                 }
 
@@ -191,20 +191,21 @@ new class extends Component {
         $this->myModal = false;
     }
 
-    public function activeAffiliate(): void
+    public function activeAffiliate($id): void
     {
+        $affiliate = Affiliate::find($id);
         // Gunakan koneksi 'wordpress' untuk mengakses database WordPress
         DB::connection('wordpress')->beginTransaction();
 
         try {
             // 1. Insert ke tabel wp_users
             $userId = DB::connection('wordpress')->table('users')->insertGetId([
-                'user_login' => $this->username,
-                'user_pass' => $this->password,
-                'user_email' => $this->email,
+                'user_login' => $affiliate->username,
+                'user_pass' => $affiliate->password,
+                'user_email' => $affiliate->email,
                 'user_registered' => now(),
                 'user_status' => 0,
-                'display_name' => $this->username,
+                'display_name' => $affiliate->username,
             ]);
 
             // 2. Insert ke tabel wp_usermeta untuk role dan metadata
@@ -235,7 +236,7 @@ new class extends Component {
                     'user_id' => $userId,
                     'date_created' => now(),
                     'status' => 'active', // Status affiliate
-                    'payment_email' => $this->email, // Email pembayaran
+                    'payment_email' => $affiliate->email, // Email pembayaran
                 ]);
 
                 if ($affiliateId) {
