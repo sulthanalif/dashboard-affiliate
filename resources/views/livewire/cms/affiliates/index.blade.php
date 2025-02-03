@@ -156,13 +156,12 @@ new class extends Component {
                 $aff->is_active = 1;
                 $aff->is_rejected = 0;
 
-                if (!$aff->is_wp_affiliate) {
-                    $this->activeAffiliate($aff->id);
-                    $aff->is_wp_affiliate = 1;
-                }
+                // if (!$aff->is_wp_affiliate) {
+                //     $this->activeAffiliate($aff->id);
+                //     $aff->is_wp_affiliate = 1;
+                // }
 
                 $aff->save();
-
                 DB::commit();
             } catch (\Throwable $th) {
                 DB::rollBack();
@@ -194,64 +193,55 @@ new class extends Component {
     public function activeAffiliate($id): void
     {
         $affiliate = Affiliate::find($id);
-        // Gunakan koneksi 'wordpress' untuk mengakses database WordPress
         DB::connection('wordpress')->beginTransaction();
+        DB::connection('wordpressaff')->beginTransaction();
 
         try {
-            // 1. Insert ke tabel wp_users
             $userId = DB::connection('wordpress')->table('users')->insertGetId([
                 'user_login' => $affiliate->username,
-                'user_pass' => $affiliate->password,
+                'user_pass' => bcrypt($affiliate->password),
                 'user_email' => $affiliate->email,
                 'user_registered' => now(),
                 'user_status' => 0,
                 'display_name' => $affiliate->username,
             ]);
 
-            // 2. Insert ke tabel wp_usermeta untuk role dan metadata
-            if ($userId) {
-                // Set capabilities berdasarkan role affiliate
-                $capabilities = serialize(['affiliate' => true]);
-
-                DB::connection('wordpress')->table('usermeta')->insert([
-                    // Set role (wp_capabilities)
-                    [
-                        'user_id' => $userId,
-                        'meta_key' => 'wp_capabilities',
-                        'meta_value' => $capabilities,
-                    ],
-                    // Set user level (wp_user_level)
-                    [
-                        'user_id' => $userId,
-                        'meta_key' => 'wp_user_level',
-                        'meta_value' => 0, // Level 0 untuk affiliate
-                    ],
-                ]);
-
-                // 3. Tambahkan user ke tabel affiliate SliceWP (jika diperlukan)
-                // Pastikan nama tabel sesuai dengan konfigurasi SliceWP
-                $affiliateTable = 'wp_slicewp_affiliates'; // Ganti dengan nama tabel yang sesuai
-                DB::connection('wordpressaff')->beginTransaction();
-                $affiliateId = DB::connection('wordpressaff')->table($affiliateTable)->insertGetId([
-                    'user_id' => $userId,
-                    'date_created' => now(),
-                    'status' => 'active', // Status affiliate
-                    'payment_email' => $affiliate->email, // Email pembayaran
-                ]);
-
-                if ($affiliateId) {
-                    DB::connection('wordpressaff')->commit();
-                } else {
-                    DB::connection('wordpressaff')->rollBack();
-                    Log::error("Gagal menyimpan data affiliate ke tabel wp_slicewp_affiliates.");
-                }
-                DB::connection('wordpress')->commit(); // Commit transaksi
-            } else {
-                DB::connection('wordpress')->rollBack(); // Rollback transaksi
-                Log::error("Gagal menyimpan data user ke tabel wp_users.");
+            if (!$userId) {
+                throw new \Exception("Gagal menyimpan data user ke tabel wp_users.");
             }
+
+            $capabilities = serialize(['affiliate' => true]);
+
+            DB::connection('wordpress')->table('usermeta')->insert([
+                [
+                    'user_id' => $userId,
+                    'meta_key' => 'wp_capabilities',
+                    'meta_value' => $capabilities,
+                ],
+                [
+                    'user_id' => $userId,
+                    'meta_key' => 'wp_user_level',
+                    'meta_value' => 0,
+                ],
+            ]);
+
+            $affiliateTable = 'wp_slicewp_affiliates';
+            $affiliateId = DB::connection('wordpressaff')->table($affiliateTable)->insertGetId([
+                'user_id' => $userId,
+                'date_created' => now(),
+                'status' => 'active',
+                'payment_email' => $affiliate->email,
+            ]);
+
+            if (!$affiliateId) {
+                throw new \Exception("Gagal menyimpan data affiliate ke tabel wp_slicewp_affiliates.");
+            }
+
+            DB::connection('wordpressaff')->commit();
+            DB::connection('wordpress')->commit();
         } catch (\Exception $e) {
-            DB::connection('wordpress')->rollBack(); // Rollback transaksi jika terjadi error
+            DB::connection('wordpressaff')->rollBack();
+            DB::connection('wordpress')->rollBack();
             Log::error("Terjadi error saat register affiliate: " . $e->getMessage());
         }
 
